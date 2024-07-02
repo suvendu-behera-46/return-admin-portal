@@ -1,0 +1,166 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://reduce-returns_owner:YQ1BLuSloOf8@ep-orange-moon-a54jtdq7-pooler.us-east-2.aws.neon.tech/reduce-returns?sslmode=require"
+}
+
+enum CampaignStatus {
+  DRAFT
+  LIVE
+  PAUSED
+  COMPLETE
+}
+
+enum CampaignType {
+  AMOUNTOFF
+  PERCENTAGEOFF
+  UPLOAD
+  AUTOMATIC
+}
+
+model TeamMember {
+  id                   Int       @id @default(autoincrement())
+  firstName            String
+  lastName             String
+  email                String    @unique
+  userRole             String
+  shopUserID           String    @default(dbgenerated())
+  status               String    @default("Invite Sent")
+  shop                 Shop      @relation(fields: [shopID], references: [id])
+  shopID               Int
+  dateTimeCreated      DateTime  @default(now())
+  lastLoggedInDateTime DateTime?
+  resetToken           String?
+  resetTokenExpiresAt  DateTime?
+  password             String
+  updatedAt            DateTime  @updatedAt
+}
+
+model Shop {
+  id          Int          @id @default(autoincrement())
+  name        String
+  shopId      String
+  teamMembers TeamMember[]
+}
+
+model Session {
+  id          String    @id
+  shop        String
+  state       String
+  isOnline    Boolean   @default(false)
+  scope       String?
+  expires     DateTime?
+  accessToken String
+  userId      BigInt?
+}
+
+model Product {
+  id                    String            @id
+  shopId                String
+  productId             String
+  name                  String
+  handle                String
+  variantId             String            @unique // Ensure variantId is unique
+  variantSKU            String?
+  variantUPC            String?
+  variantOptionValue1   String
+  variantOptionValue2   String?
+  status                String
+  inventoryAvailableQty Int
+  tag                   String?
+  variantPrice          Float
+  category              String?
+  recordCreatedAt       DateTime
+  recordUpdatedAt       DateTime
+  inventoryAvailable    Int
+  vendor                String
+  imgSrc                String?
+  productType           String?
+  campaignProducts      CampaignProduct[] // Relation to CampaignProduct
+
+  @@index([productId])
+  @@index([handle])
+}
+
+model Campaign {
+  id                            Int               @id @default(autoincrement())
+  campaignName                  String
+  rank                          Int
+  allowForInternationalOrder    Boolean?
+  startDate                     DateTime?
+  endDate                       DateTime?
+  budget                        Float?
+  continueCampaignOnPriceChange Boolean?
+  campaignType                  CampaignType?
+  status                        CampaignStatus    @default(DRAFT)
+  shopId                        Int?
+  campaignProducts              CampaignProduct[] // Relation to CampaignProduct
+  pricings                      Pricing[] // Added relation to Pricing
+  events                        Event[] // Added relation to Event
+
+  @@index([shopId]) // Adjust indexing if necessary
+}
+
+model CampaignProduct {
+  id                Int    @id @default(autoincrement())
+  campaignId        Int
+  variantId         String // Referencing Product.variantId
+  exchangeOnlyPrice Float?
+  finalSalePrice    Float?
+  easyReturnsPrice  Float?
+
+  campaign Campaign @relation(fields: [campaignId], references: [id])
+  product  Product  @relation(fields: [variantId], references: [variantId]) // Correct relation
+
+  @@index([campaignId])
+  @@index([variantId])
+}
+
+model Order {
+  id               Int       @id @default(autoincrement())
+  orderId          String?   @map("Order ID")
+  orderName        String?   @map("Order Name")
+  createdDate      DateTime? @map("Created Date")
+  paymentStatus    String?   @map("Payment Status")
+  fulfilmentStatus String?   @map("Fulfilment Status")
+  lineItem         String?   @map("Line Item")
+  qty              Int?      @map("Qty")
+  price            Float?    @map("Price")
+  customerId       String?   @map("CustomerID")
+  createdAt        DateTime? @map("CreatedAt")
+  updatedAt        DateTime? @map("UpdatedAt")
+
+  @@map("orders")
+}
+
+model Pricing {
+  id                    Int      @id @default(autoincrement())
+  variantId             String
+  shopId                Int?
+  exchangeOnlyPrice     Float?
+  finalSalePrice        Float?
+  easyReturnsPrice      Float?
+  internationalShipping Boolean?
+  eligibilityFlag       Boolean?
+  rank                  Int?
+  campaignId            Int? // Updated to Int to match Campaign model
+
+  campaign Campaign? @relation(fields: [campaignId], references: [id])
+
+  @@index([shopId]) // Adjust indexing if necessary
+}
+
+model Event {
+  id         Int      @id @default(autoincrement())
+  clientId   String
+  action     String
+  elementId  String
+  variantId  String
+  campaignId Int? // Updated to Int to match Campaign model
+  createdAt  DateTime @default(now())
+
+  campaign Campaign? @relation(fields: [campaignId], references: [id])
+}

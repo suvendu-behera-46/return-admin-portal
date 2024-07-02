@@ -1,0 +1,21 @@
+@use "../../../styles/media.scss";
+
+.tableContainer {
+  .mobileCard {
+    @include media.onMd {
+      display: none;
+    }
+  }
+
+  .webTable {
+    @include media.onMdM {
+      display: none;
+    }
+  }
+}
+
+.mobilePagination {
+  @include media.onMd {
+    display: none;
+  }
+}
