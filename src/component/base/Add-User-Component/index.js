@@ -1,5 +1,5 @@
-import CloseIcon from "@mui/icons-material/Close";
-import InfoIcon from "@mui/icons-material/Info";
+import CloseIcon from "@mui/icons-material/Close"
+import InfoIcon from "@mui/icons-material/Info"
 import {
   Button,
   Checkbox,
@@ -13,9 +13,9 @@ import {
   TextField,
   Tooltip,
   Typography,
-} from "@mui/material";
-import axios from "axios";
-import React from "react";
+} from "@mui/material"
+import axios from "axios"
+import React from "react"
 
 const initialUserData = {
   firstName: "",
@@ -24,40 +24,44 @@ const initialUserData = {
   password: "",
   confirmPassword: "",
   role: "",
-};
+}
 
 const AddUserDialog = ({ open, handleClose, fetchTeamMembers }) => {
-  const [userData, setUserData] = React.useState(initialUserData);
-  const [passwordError, setPasswordError] = React.useState("");
+  const [userData, setUserData] = React.useState(initialUserData)
+  const [passwordError, setPasswordError] = React.useState("")
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value } = e.target
     setUserData((prevData) => ({
       ...prevData,
       [name]: value,
-    }));
-  };
+    }))
+  }
 
   const handleRoleChange = (e) => {
-    const { value, checked } = e.target;
+    const { value, checked } = e.target
     setUserData((prevData) => ({
       ...prevData,
       role: checked ? value : "",
-    }));
-  };
+    }))
+  }
 
   const validatePassword = () => {
-    const { password } = userData;
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z]).{8,25}$/;
+    const { password, confirmPassword } = userData
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z]).{8,25}$/
     if (!passwordRegex.test(password)) {
       setPasswordError(
         "Password must be 8 to 25 characters long and contain at least one uppercase and one lowercase letter."
-      );
-      return false;
+      )
+      return false
     }
-    setPasswordError("");
-    return true;
-  };
+    if (password !== confirmPassword) {
+      setPasswordError("Password doesn't match")
+      return false
+    }
+    setPasswordError("")
+    return true
+  }
 
   const handleAddUser = async () => {
     try {
@@ -71,18 +75,18 @@ const AddUserDialog = ({ open, handleClose, fetchTeamMembers }) => {
           shopID: 1, // Updated to match new schema
           password: userData.password,
           shopUserID: "001", // Updated to match new schema
-        };
-        const response = await axios.post("/api/team", payload);
-        console.log("Team member added:", response.data);
-        console.log("User data:", payload);
-        setUserData(initialUserData);
-        handleClose();
-        fetchTeamMembers();
+        }
+        const response = await axios.post("/api/team", payload)
+        console.log("Team member added:", response.data)
+        console.log("User data:", payload)
+        setUserData(initialUserData)
+        handleClose()
+        fetchTeamMembers()
       }
     } catch (error) {
-      console.error(error);
+      console.error(error)
     }
-  };
+  }
 
   return (
     <Dialog open={open} onClose={handleClose}>
@@ -242,7 +246,7 @@ const AddUserDialog = ({ open, handleClose, fetchTeamMembers }) => {
         </Button>
       </DialogActions>
     </Dialog>
-  );
-};
+  )
+}
 
-export default AddUserDialog;
+export default AddUserDialog
